@@ -6,6 +6,7 @@ import (
     "time"
     "github.com/google/gopacket"
     "github.com/google/gopacket/afpacket"
+    "golang.org/x/sys/unix"
 )
 
 // 会话信息结构体
@@ -29,13 +30,17 @@ var (
     flowMapLock sync.RWMutex
 )
 
+// 添加pageSize定义
+const pageSize = unix.Getpagesize()
+
 func main() {
     // 创建抓包句柄
     handle, err := afpacket.NewTPacket(
         afpacket.OptInterface("enp4s0f0"),
         afpacket.OptFrameSize(65536),
-        afpacket.OptBlockSize(1<<20),
+        afpacket.OptBlockSize(pageSize * 128),  // 使用pageSize
         afpacket.OptNumBlocks(128),
+        afpacket.OptPollTimeout(1000),  // 添加超时设置
     )
     if err != nil {
         log.Fatal(err)
